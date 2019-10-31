@@ -7,37 +7,27 @@ from ConnectToApi import ApiGetData
 
 class ProcessApiDict():
 
-    def convert_api_keys(self, dict_key_process):
+    def convert_api_keys(self, dict_key_to_process):
 
-        dictionary_key_upper = {}
+        dict_key_upper = {k.upper():v for k, v in dict_key_to_process.items()}
 
-        for k, v in dict_key_process.items():
-            k_upper = k.upper()
-            dictionary_key_upper[k_upper] = v
+        dict_key_upper['CAST'] = dict_key_upper.pop('ACTORS')
+        dict_key_upper['IMDb_Rating'] = dict_key_upper.pop('IMDBRATING')
+        dict_key_upper['IMDb_votes'] = dict_key_upper.pop('IMDBVOTES')
 
-        dictionary_key_upper['CAST'] = dictionary_key_upper.pop('ACTORS')
-        dictionary_key_upper['IMDb_Rating'] = dictionary_key_upper.pop('IMDBRATING')
-        dictionary_key_upper['IMDb_votes'] = dictionary_key_upper.pop('IMDBVOTES')
-
-        if 'BOXOFFICE' in dictionary_key_upper.keys():
-            dictionary_key_upper['BOX_OFFICE'] = dictionary_key_upper.pop('BOXOFFICE')
+        if 'BOXOFFICE' in dict_key_upper.keys():
+            dict_key_upper['BOX_OFFICE'] = dict_key_upper.pop('BOXOFFICE')
         else:
             print('')
 
-        return dictionary_key_upper
+        return dict_key_upper
 
-    def convert_api_values(self, dict_val_process):
+    def convert_api_values(self, dict_val_to_process):
 
-        dictionary_val_quote = {}
+        dict_movie_without_quote = {k:v.replace('"', '') for k, v in dict_val_to_process.items()}
+        return dict_movie_without_quote
 
-        for k, v in dict_val_process.items():
-            v_quote = v.replace('"', '')
-
-            dictionary_val_quote[k] = v_quote
-
-        return dictionary_val_quote
-
-    def get_api_column_same_as_database(self, column_name_list, dict_with_all_col):
+    def get_api_col_same_as_database(self, column_name_list, dict_with_all_col):
         
         dict_col_as_database = {}
         
@@ -51,44 +41,42 @@ class ProcessApiDict():
 
         return dict_processed_val
 
-class ApiSqliteSameData(ApiGetData, SqliteColumnTitle, SqliteConnectQuery, ProcessApiDict):
+
+class ApiSqlitePutData(ApiGetData, SqliteColumnTitle, SqliteConnectQuery, ProcessApiDict):
 
     def get_same_movie_as_database(self):
+
         movie_list_of_dict = []
 
-        for column in self.connect_database.execute('select TITLE from MOVIES'):
-            for record in column:
-                api_movie = self.get_api_data(record)
-                api_dict = self.convert_data_to_dict(api_movie)
+        for record in self.get_title_name():
+            api_movie = self.get_api_data(record)
+            api_dict = self.convert_data_to_dict(api_movie)
 
-                movie_list_of_dict.append(self.get_api_column_same_as_database(self.get_column_name(), api_dict))
+            movie_list_of_dict.append(self.get_api_col_same_as_database(self.get_column_name(), api_dict))
 
         return movie_list_of_dict
 
 
-#apisqlitesamedata = ApiSqliteSameData()
-#print(apisqlitesamedata.get_same_movie_as_database())
+    def populate_database(self):
 
+        connection = self.CONNECT_DATABASE
+        id = 0
 
-class ApiSqlitePutData(ApiSqliteSameData, SqliteColumnTitle, SqliteConnectQuery):
-
-    def put_data_to_database(self):
-
-        connection = self.connect_to_database()
-        x = 0
-
-        while x < len(self.get_same_movie_as_database()):
+        while id < len(self.get_same_movie_as_database()):
             for dict_movie in self.get_same_movie_as_database():
                 for k, v in dict_movie.items():
 
-                    query = 'UPDATE MOVIES SET "{0}" = "{1}" WHERE "ID" = "{2}"'.format(k, v, x)
-                    connection.execute(query)
+                    query_update = 'UPDATE MOVIES SET "{0}" = "{1}" WHERE "ID" = "{2}"'.format(k, v, id)
+                    connection.execute(query_update)
                     connection.commit()
                 print('POPULATED: ' + dict_movie['TITLE'])
-                x += 1            
+                id += 1            
 
-apisqliteputdata = ApiSqlitePutData()
-apisqliteputdata.put_data_to_database()
+#apisqliteputdata = ApiSqlitePutData()
+#print(apisqliteputdata.get_same_movie_as_database())
+#apisqliteputdata.populate_database()
+
+
 
 
 
