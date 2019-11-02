@@ -1,0 +1,42 @@
+from ConnectToDatabase import DatabaseConnect
+from ConnectToApi import ApiGetData, ProcessApiDict
+from DatabaseQueries import UpdateDatabase
+
+
+class ApiPopulateDatabase(ProcessApiDict, ApiGetData, UpdateDatabase):
+
+    def populate_database(self):
+        """
+        MAIN FUNC OF CLASS
+        description: populate database
+        :return:
+        """
+        id_movie = 0
+
+        while id_movie < len(self.get_same_movie_as_database()):
+            for dict_movie in self.get_same_movie_as_database(): #ApiGetData
+                self.update_database_with_api(dict_movie, id_movie)
+                id_movie += 1
+
+    def get_same_movie_as_database(self):
+        """
+        description: function adds api dict if key 'TITLE' is in database
+        :return: LIST of api movies same as in database
+        """
+        movie_list_of_dict = []
+
+        for movie_title in self.get_column_record('TITLE'): #DatabaseConnect
+            movie_list_of_dict.append(self.api_data_processed(movie_title)) #ProcessApiDict
+
+        return movie_list_of_dict
+
+
+#apipopulatedatabase = ApiPopulateDatabase()
+#print(apipopulatedatabase.get_same_movie_as_database())
+#print(apipopulatedatabase.populate_database())
+
+
+
+
+
+

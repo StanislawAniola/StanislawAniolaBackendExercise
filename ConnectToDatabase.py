@@ -20,21 +20,21 @@ class DatabaseConnect:
         list_column_names = [description[0] for description in cursor.description]
         return list_column_names
 
-    def get_title_name(self):
+    def get_column_record(self, column_name):
         """
         description: function get all title names from database
         use: POPULATE database with api data
         :return: LIST of title names
         """
-        cursor = self.CONNECT_DATABASE.execute('select TITLE from MOVIES')
+        cursor = self.CONNECT_DATABASE.execute('select {0} from MOVIES'.format(column_name))
 
-        title_list = []
+        column_record_list = []
 
         for column in cursor:
-            for title in column:
-                title_list.append(title)
+            for record in column:
+                column_record_list.append(record)
 
-        return title_list
+        return column_record_list
 
 
 #databaseconnect = DatabaseConnect()
