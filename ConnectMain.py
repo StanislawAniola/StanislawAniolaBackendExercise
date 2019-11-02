@@ -1,15 +1,37 @@
-import requests
-import sqlite3
-
-from ConnectToDatabase import SqliteConnectQuery, SqliteColumnTitle
+from ConnectToDatabase import DatabaseConnect
 from ConnectToApi import ApiGetData
 
 
-class ProcessApiDict():
+class ProcessApiDict(DatabaseConnect):
 
-    def convert_api_keys(self, dict_key_to_process):
+    def get_api_col_same_as_database(self, api_dict_raw):
+        """
+        MAIN FUNC OF CLASS
+        description: function process api_dict to makes it contain same dictionary keys as database columns
+        use: same dictionary keys as database columns
+        :api_dict_raw dict_with_all_col: api dictionary with all keys and values
+        :return: DICTIONARY with filtered keys
+        """
+        column_name_list = self.get_column_name() #DatabaseConnect
+        dict_upper_key = self.convert_api_keys(api_dict_raw)
 
-        dict_key_upper = {k.upper():v for k, v in dict_key_to_process.items()}
+        dict_key_as_col = {}
+        for column in column_name_list:
+            if column in dict_upper_key:
+                dict_key_as_col[column] = dict_upper_key[column]
+
+        dict_processed_val_and_keys = self.convert_api_values(dict_key_as_col)
+
+        return dict_processed_val_and_keys
+
+    def convert_api_keys(self, api_dict_key):
+        """
+        description: function makes key in dictionary from api to be similar with column names in database
+        use: dictionary key == database column name
+        :param api_dict_key: dict with keys and values from api
+        :return: DICTIONARY with processed keys
+        """
+        dict_key_upper = {k.upper(): v for k, v in api_dict_key.items()}
 
         dict_key_upper['CAST'] = dict_key_upper.pop('ACTORS')
         dict_key_upper['IMDb_Rating'] = dict_key_upper.pop('IMDBRATING')
@@ -22,57 +44,73 @@ class ProcessApiDict():
 
         return dict_key_upper
 
-    def convert_api_values(self, dict_val_to_process):
-
-        dict_movie_without_quote = {k:v.replace('"', '') for k, v in dict_val_to_process.items()}
+    def convert_api_values(self, api_dict_val):
+        """
+        description: function prepares api dict values to populate database
+        use: replace '"' with ''
+        :param api_dict_val: dict with keys and values from api
+        :return: DICTIONARY with processed values
+        """
+        dict_movie_without_quote = {k: v.replace('"', '') for k, v in api_dict_val.items()}
         return dict_movie_without_quote
 
-    def get_api_col_same_as_database(self, column_name_list, dict_with_all_col):
-        
-        dict_col_as_database = {}
-        
-        dict_upper_key = self.convert_api_keys(dict_with_all_col)
 
-        for column in column_name_list:
-            if column in dict_upper_key:
-                dict_col_as_database[column] = dict_upper_key[column]
-
-        dict_processed_val = self.convert_api_values(dict_col_as_database)
-
-        return dict_processed_val
+#test = ProcessApiDict()
+#test2 = ApiGetData()
+#print(test.get_api_col_same_as_database(test2.convert_data_to_dict('Blade')))
 
 
-class ApiSqlitePutData(ApiGetData, SqliteColumnTitle, SqliteConnectQuery, ProcessApiDict):
+class UpdateDatabase(DatabaseConnect):
+
+    def update_database_with_api(self, api_dict_processed, index):
+        """
+        description: fill missed data in database with those from api
+        :param api_dict_processed
+        :param index: index where data will be place
+        :return: UPDATE database with api values
+        """
+
+        connection = self.CONNECT_DATABASE #DatabaseConnect
+        for k, v in api_dict_processed.items():
+            query_update = 'UPDATE MOVIES SET "{0}" = "{1}" WHERE "ID" = "{2}"'.format(k, v, index)
+            connection.execute(query_update)
+            connection.commit()
+
+        print('UPDATED: {0}'.format(api_dict_processed['TITLE']))
+
+
+class ApiPopulateDatabase(ApiGetData, ProcessApiDict, UpdateDatabase):
+
+    def populate_database(self):
+        """
+        MAIN FUNC OF CLASS
+        description: populate database
+        :return:
+        """
+        id_movie = 0
+
+        while id_movie < len(self.get_same_movie_as_database()):
+            for dict_movie in self.get_same_movie_as_database(): #ApiGetData
+                self.update_database_with_api(dict_movie, id_movie)
+                id_movie += 1
 
     def get_same_movie_as_database(self):
-
+        """
+        description: function adds api dict if key 'TITLE' is in database
+        :return: LIST of api movies same as in database
+        """
         movie_list_of_dict = []
 
-        for record in self.get_title_name():
-            api_movie = self.get_api_data(record)
-            api_dict = self.convert_data_to_dict(api_movie)
+        for title in self.get_title_name(): #DatabaseConnect
+            #api_movie = self.get_api_data(title)
+            api_dict = self.convert_data_to_dict(title)
 
-            movie_list_of_dict.append(self.get_api_col_same_as_database(self.get_column_name(), api_dict))
+            movie_list_of_dict.append(self.get_api_col_same_as_database(api_dict)) #ProcessApiDict
 
         return movie_list_of_dict
 
 
-    def populate_database(self):
-
-        connection = self.CONNECT_DATABASE
-        id = 0
-
-        while id < len(self.get_same_movie_as_database()):
-            for dict_movie in self.get_same_movie_as_database():
-                for k, v in dict_movie.items():
-
-                    query_update = 'UPDATE MOVIES SET "{0}" = "{1}" WHERE "ID" = "{2}"'.format(k, v, id)
-                    connection.execute(query_update)
-                    connection.commit()
-                print('POPULATED: ' + dict_movie['TITLE'])
-                id += 1            
-
-#apisqliteputdata = ApiSqlitePutData()
+#apisqliteputdata = ApiPopulateDatabase()
 #print(apisqliteputdata.get_same_movie_as_database())
 #apisqliteputdata.populate_database()
 

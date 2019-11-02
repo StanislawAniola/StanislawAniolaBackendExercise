@@ -8,14 +8,14 @@ class ApiGetData:
         respond = requests.get('http://www.omdbapi.com/?t={0}&apikey=4554a5a6'.format(movie_title))
         return respond
 
-    def convert_data_to_dict(self, api_connection):
+    def convert_data_to_dict(self, movie_title):
 
-        read_json = api_connection.json()
+        connection = self.get_api_data(movie_title)
+
+        read_json = connection.json()
         movies_dictionary_json = dict(read_json)
 
         return movies_dictionary_json
 
 #apigetdata = ApiGetData()
-#connect = apigetdata.get_api_data('Gran Torino')
-#print(connect)
-#print(apigetdata.convert_data_to_dict(connect))
+#print(apigetdata.convert_data_to_dict('Blade'))
