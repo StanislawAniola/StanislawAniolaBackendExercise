@@ -30,17 +30,17 @@ class ApiGetData:
 #print(apigetdata.get_api_data('Blade'))
 #print(apigetdata.convert_data_to_dict('Blade'))
 
+
 class ProcessApiDict(ApiGetData, DatabaseConnect):
 
-
     def api_data_processed(self, movie_title):
-        '''
+        """
         MAIN FUNC OF CLASS
         description: function is a hub between get_api_col_same_as_database and 
         raw data from api: convert_data_to_dict
         :movie_title: title of movie that will be get from api
         :return: DICTIONARY with data from api ready to work with
-        '''
+        """
         api_dict_raw = self.convert_data_to_dict(movie_title)
         api_dict_processed = self.get_api_col_same_as_database(api_dict_raw)
 

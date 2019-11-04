@@ -50,10 +50,9 @@ class GetDatabaseRecords(DatabaseConnect):
 
     def combine_column_row(self, database_column):
         """
-        description: fill missed data in database with those from api
-        :param api_dict_processed
-        :param index: index where data will be place
-        :return: UPDATE database with api values
+        description: get database TITLE and indicated column records
+        :param database_column: variable by with will be operations like sorting
+        :return: LIST of DICTIONARIES contains TITLE and indicated column records
         """
         list_of_movies = []
 
@@ -72,44 +71,26 @@ class GetDatabaseRecords(DatabaseConnect):
         return list_of_movies
 
     def filter_by(self, database_column):
+        """
+        FUNCTION IN PROGRESS
+        :param database_column: variable by with will be operations like sorting
+        :return:
+        """
 
         raw_list = self.get_column_record(database_column)
-        ll_list = []
+        str_list = []
         for i in raw_list:
-            ll_list.append(str(i))
+            str_list.append(str(i))
         
-        lll_list = [j.replace('–', '') for j in ll_list]
-        llll_list = []
+        replace_ist = [j.replace('–', '') for j in str_list]
+        int_list = []
 
-        for i in lll_list:
-            llll_list.append(int(i))
+        for i in replace_ist:
+            int_list.append(int(i))
 
-        return sorted(lll_list)
+        return sorted(int_list)
 
         
-
-
-
 #get_database_records = GetDatabaseRecords()
 #print(get_database_records.combine_column_row('YEAR'))
 #print(get_database_records.filter_by('YEAR'))
-
-
-def post_code(first, second):
-    first_one = first.replace('-', '')
-    second_one = second.replace('-', '')
-
-    x = int(first_one)
-    y = int(second_one)
-
-    int_list = [i for i in range(x, y+1)]
-        
-    str_list = [str(i) for i in int_list]
-
-    asd = []
-    for i in str_list:
-        print(i[-1])
-    
-
-
-post_code('79-900', '80-155')

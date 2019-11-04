@@ -40,4 +40,4 @@ class DatabaseConnect:
 #databaseconnect = DatabaseConnect()
 #print(databaseconnect.CONNECT_DATABASE)
 #print(databaseconnect.get_column_name())
-#print(databaseconnect.get_title_name())
+#print(databaseconnect.get_column_record('TITLE'))

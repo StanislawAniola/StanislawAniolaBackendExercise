@@ -3,7 +3,7 @@ from ConnectToApi import ApiGetData, ProcessApiDict
 from DatabaseQueries import UpdateDatabase
 
 
-class ApiPopulateDatabase(ProcessApiDict, ApiGetData, UpdateDatabase):
+class ApiPopulateDatabase(ProcessApiDict, ApiGetData, UpdateDatabase, DatabaseConnect):
 
     def populate_database(self):
         """
@@ -25,15 +25,16 @@ class ApiPopulateDatabase(ProcessApiDict, ApiGetData, UpdateDatabase):
         """
         movie_list_of_dict = []
 
-        for movie_title in self.get_column_record('TITLE'): #DatabaseConnect
-            movie_list_of_dict.append(self.api_data_processed(movie_title)) #ProcessApiDict
+        for title in self.get_column_record('TITLE'): #DatabaseConnect
+            api_dict = self.convert_data_to_dict(title)
+            movie_list_of_dict.append(self.get_api_col_same_as_database(api_dict)) #ProcessApiDict
 
         return movie_list_of_dict
 
 
-#apipopulatedatabase = ApiPopulateDatabase()
-#print(apipopulatedatabase.get_same_movie_as_database())
-#print(apipopulatedatabase.populate_database())
+#apisqliteputdata = ApiPopulateDatabase()
+#print(apisqliteputdata.get_same_movie_as_database())
+#apisqliteputdata.populate_database()
 
 
 
