@@ -9,5 +9,7 @@ The available program's commands are listed below.
 
 
 Available commands:
+
 python CommandLineExe.py --populate
+
 python CommandLineExe.py --add "movie name"
